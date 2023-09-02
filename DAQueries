@@ -1,0 +1,52 @@
+# SQL Queries
+
+Below are some SQL queries used in this project for analyzing Anxiety or Depression based on reported frequency of symptoms during the Last 7 Days. 
+
+*Note: We used CAST due to certain columns in the dataset have a data type of strings (text) instead of numbers (numeric data types). This is not best practice, should have transform the data before loading. This was my first time building a ETL pipelines and querying the data extracted.
+
+**Query 1: Average anxiety and depress level for each race**
+**Description:** This query provides insights level for each race.
+
+```sql
+SELECT indicator, subgroup AS race_ethnicity, CONCAT(CAST(AVG(value) AS DECIMAL(10,2)), '%') AS average_anxiety_depression_level_percentage 
+FROM depress 
+WHERE indicator IN ('Symptoms of Anxiety Disorder', 'Symptoms of Depressive Disorder') 
+AND "group" = 'By Race/Hispanic ethnicity' 
+GROUP BY indicator, subgroup 
+ORDER BY race_ethnicity;
+```
+
+**Query 2: Average level of symptoms of depression over the years.** 
+**Description:** This query shows the changes in depression symptoms over the years.
+
+```sql
+SELECT TO_CHAR(time_period_start_date, 'YYYY') AS year, CAST(AVG(value) AS numeric(10, 2)) AS average_depression_level 
+FROM depress 
+WHERE indicator = 'Symptoms of Depressive Disorder' 
+GROUP BY year ORDER BY year;
+```
+
+**Query 3: Top 5 states with the highest anxiety levels**
+**Description:** This query selects the top 5 states with the highest anxiety levels
+
+```sql
+SELECT state, CAST(AVG(value) AS DECIMAL(10, 2)) AS average_anxiety_level 
+FROM depress WHERE indicator = 'Symptoms of Anxiety Disorder' 
+AND "group" = 'By State' 
+GROUP BY state 
+ORDER BY average_anxiety_level DESC LIMIT 5;
+```
+
+**Query 4: Anxiety and depression levels different across age groups**
+**Description:** This query pulls the aniexty and depression levels from different age groups
+
+```sql
+SELECT d1.subgroup AS age_group, CAST(AVG(d1.value) AS DECIMAL(10, 2)) AS average_anxiety_level, CAST(AVG(d2.value) AS DECIMAL(10, 2)) AS average_depression_level 
+FROM depress d1 JOIN depress d2 ON d1.subgroup = d2.subgroup 
+WHERE d1.indicator = 'Symptoms of Anxiety Disorder' 
+AND d2.indicator = 'Symptoms of Depressive Disorder' 
+AND d1."group" = 'By Age' 
+AND d2."group" = 'By Age' 
+GROUP BY d1.subgroup;
+```
+
